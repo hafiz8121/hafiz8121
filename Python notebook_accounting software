@@ -1,0 +1,305 @@
+import tkinter as tk
+from tkinter import filedialog, colorchooser, font, messagebox, ttk
+from datetime import datetime
+import pandas as pd
+
+class Notepad(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+        self.title("Notepad")
+        self.geometry("800x600")
+
+        # Create a text widget
+        self.text = tk.Text(self, wrap="word", undo=True)
+        self.text.pack(side="top", fill="both", expand=True)
+
+        # Create a menu bar
+        self.menu = tk.Menu(self)
+        self.config(menu=self.menu)
+
+        # Create file menu
+        file_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="New", command=self.new_file)
+        file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Save", command=self.save_file)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.quit)
+
+        # Create edit menu
+        edit_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Edit", menu=edit_menu)
+        edit_menu.add_command(label="Cut", command=lambda: self.text.event_generate("<<Cut>>"))
+        edit_menu.add_command(label="Copy", command=lambda: self.text.event_generate("<<Copy>>"))
+        edit_menu.add_command(label="Paste", command=lambda: self.text.event_generate("<<Paste>>"))
+        edit_menu.add_command(label="Select All", command=lambda: self.text.event_generate("<<SelectAll>>"))
+
+        # Create format menu
+        format_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Format", menu=format_menu)
+        format_menu.add_command(label="Change Font", command=self.change_font)
+        format_menu.add_command(label="Change Color", command=self.change_color)
+
+        # Create view menu
+        view_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="View", menu=view_menu)
+        view_menu.add_command(label="Light Theme", command=lambda: self.change_theme("light"))
+        view_menu.add_command(label="Dark Theme", command=lambda: self.change_theme("dark"))
+
+        # Create tools menu
+        tools_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Tools", menu=tools_menu)
+        tools_menu.add_command(label="Start Timer", command=self.start_timer)
+        tools_menu.add_command(label="Stop Timer", command=self.stop_timer)
+        tools_menu.add_command(label="Reset Timer", command=self.reset_timer)
+
+        # Create portal menu
+        portal_menu = tk.Menu(self.menu, tearoff=0)
+        self.menu.add_cascade(label="Portal", menu=portal_menu)
+        portal_menu.add_command(label="Open Accounting Software", command=self.open_accounting_software)
+
+        # Create status bar
+        self.status = tk.StringVar()
+        self.status.set("Welcome to Notepad")
+        self.status_bar = tk.Label(self, textvariable=self.status, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        # Timer variables
+        self.timer_running = False
+        self.timer_counter = 0
+
+    def new_file(self):
+        self.text.delete(1.0, tk.END)
+        self.status.set("New File")
+
+    def open_file(self):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            with open(file_path, "r") as file:
+                self.text.delete(1.0, tk.END)
+                self.text.insert(tk.END, file.read())
+            self.status.set(f"Opened {file_path}")
+
+    def save_file(self):
+        file_path = filedialog.asksaveasfilename(defaultextension=".txt",
+                                                 filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+        if file_path:
+            with open(file_path, "w") as file:
+                file.write(self.text.get(1.0, tk.END))
+            self.status.set(f"Saved {file_path}")
+
+    def change_font(self):
+        font_choice = font.askfont(self)
+        if font_choice:
+            self.text.config(font=(font_choice['family'], font_choice['size'], font_choice['weight']))
+
+    def change_color(self):
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.text.config(fg=color)
+
+    def change_theme(self, theme):
+        if theme == "light":
+            self.text.config(bg="white", fg="black")
+            self.status_bar.config(bg="lightgrey", fg="black")
+        elif theme == "dark":
+            self.text.config(bg="black", fg="white")
+            self.status_bar.config(bg="darkgrey", fg="white")
+        self.status.set(f"{theme.capitalize()} Theme Applied")
+
+    def start_timer(self):
+        if not self.timer_running:
+            self.timer_running = True
+            self.update_timer()
+
+    def stop_timer(self):
+        self.timer_running = False
+
+    def reset_timer(self):
+        self.timer_running = False
+        self.timer_counter = 0
+        self.status.set("Timer Reset")
+
+    def update_timer(self):
+        if self.timer_running:
+            self.timer_counter += 1
+            minutes, seconds = divmod(self.timer_counter, 60)
+            hours, minutes = divmod(minutes, 60)
+            self.status.set(f"Timer: {hours:02}:{minutes:02}:{seconds:02}")
+            self.after(1000, self.update_timer)
+
+    def open_accounting_software(self):
+        AccountingSoftware(self)
+
+class AccountingSoftware(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Accounting Software")
+        self.geometry("1200x800")
+
+        # Create a notebook (tabbed interface)
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(expand=True, fill="both")
+
+        # Create frames for each tab
+        self.create_login_tab()
+        self.create_dashboard_tab()
+        self.create_transactions_tab()
+        self.create_reports_tab()
+        self.create_excel_tab()
+
+    def create_login_tab(self):
+        login_frame = ttk.Frame(self.notebook)
+        self.notebook.add(login_frame, text="Login")
+
+        ttk.Label(login_frame, text="Username:", font=("Helvetica", 12)).grid(row=0, column=0, padx=10, pady=10)
+        self.username_entry = ttk.Entry(login_frame, font=("Helvetica", 12))
+        self.username_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        ttk.Label(login_frame, text="Password:", font=("Helvetica", 12)).grid(row=1, column=0, padx=10, pady=10)
+        self.password_entry = ttk.Entry(login_frame, show="*", font=("Helvetica", 12))
+        self.password_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        ttk.Button(login_frame, text="Login", command=self.login).grid(row=2, column=0, columnspan=2, pady=10)
+
+    def login(self):
+        # Placeholder login function
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        if username == "admin" and password == "password":
+            messagebox.showinfo("Login", "Login successful!")
+        else:
+            messagebox.showerror("Login", "Invalid credentials")
+
+    def create_dashboard_tab(self):
+        dashboard_frame = ttk.Frame(self.notebook)
+        self.notebook.add(dashboard_frame, text="Dashboard")
+
+        ttk.Label(dashboard_frame, text="Financial Overview", font=("Helvetica", 16, "bold")).pack(pady=10)
+        self.income_label = ttk.Label(dashboard_frame, text="Total Income: $0", font=("Helvetica", 12))
+        self.income_label.pack(pady=5)
+        self.expenses_label = ttk.Label(dashboard_frame, text="Total Expenses: $0", font=("Helvetica", 12))
+        self.expenses_label.pack(pady=5)
+        self.balance_label = ttk.Label(dashboard_frame, text="Net Balance: $0", font=("Helvetica", 12))
+        self.balance_label.pack(pady=5)
+
+    def create_transactions_tab(self):
+        transactions_frame = ttk.Frame(self.notebook)
+        self.notebook.add(transactions_frame, text="Transactions")
+
+        ttk.Label(transactions_frame, text="Add Transaction", font=("Helvetica", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
+
+        ttk.Label(transactions_frame, text="Date:", font=("Helvetica", 12)).grid(row=1, column=0, padx=10, pady=5)
+        self.date_entry = ttk.Entry(transactions_frame, font=("Helvetica", 12))
+        self.date_entry.grid(row=1, column=1, padx=10, pady=5)
+
+        ttk.Label(transactions_frame, text="Description:", font=("Helvetica", 12)).grid(row=2, column=0, padx=10, pady=5)
+        self.description_entry = ttk.Entry(transactions_frame, font=("Helvetica", 12))
+        self.description_entry.grid(row=2, column=1, padx=10, pady=5)
+
+        ttk.Label(transactions_frame, text="Amount:", font=("Helvetica", 12)).grid(row=3, column=0, padx=        10, pady=5)
+        self.amount_entry = ttk.Entry(transactions_frame, font=("Helvetica", 12))
+        self.amount_entry.grid(row=3, column=1, padx=10, pady=5)
+
+        ttk.Label(transactions_frame, text="Type:", font=("Helvetica", 12)).grid(row=4, column=0, padx=10, pady=5)
+        self.type_combobox = ttk.Combobox(transactions_frame, values=["Income", "Expense"], font=("Helvetica", 12))
+        self.type_combobox.grid(row=4, column=1, padx=10, pady=5)
+
+        ttk.Button(transactions_frame, text="Add Transaction", command=self.add_transaction).grid(row=5, column=0, columnspan=2, pady=10)
+
+        # Create a treeview to display transactions
+        columns = ("Date", "Description", "Amount", "Type")
+        self.transactions_treeview = ttk.Treeview(transactions_frame, columns=columns, show="headings")
+        for col in columns:
+            self.transactions_treeview.heading(col, text=col)
+        self.transactions_treeview.grid(row=6, column=0, columnspan=2, pady=10)
+
+    def add_transaction(self):
+        date = self.date_entry.get()
+        description = self.description_entry.get()
+        amount = self.amount_entry.get()
+        trans_type = self.type_combobox.get()
+
+        if not date or not description or not amount or not trans_type:
+            messagebox.showerror("Error", "All fields are required!")
+            return
+
+        self.transactions_treeview.insert("", "end", values=(date, description, amount, trans_type))
+
+        # Update the financial overview
+        self.update_financial_overview(trans_type, float(amount))
+
+    def update_financial_overview(self, trans_type, amount):
+        current_income = float(self.income_label["text"].split("$")[1])
+        current_expenses = float(self.expenses_label["text"].split("$")[1])
+
+        if trans_type == "Income":
+            current_income += amount
+        elif trans_type == "Expense":
+            current_expenses += amount
+
+        net_balance = current_income - current_expenses
+
+        self.income_label.config(text=f"Total Income: ${current_income:.2f}")
+        self.expenses_label.config(text=f"Total Expenses: ${current_expenses:.2f}")
+        self.balance_label.config(text=f"Net Balance: ${net_balance:.2f}")
+
+    def create_reports_tab(self):
+        reports_frame = ttk.Frame(self.notebook)
+        self.notebook.add(reports_frame, text="Reports")
+
+        ttk.Label(reports_frame, text="Reports", font=("Helvetica", 16, "bold")).pack(pady=10)
+        ttk.Button(reports_frame, text="Generate Report", command=self.generate_report).pack(pady=10)
+
+    def generate_report(self):
+        transactions = []
+        for child in self.transactions_treeview.get_children():
+            transactions.append(self.transactions_treeview.item(child)["values"])
+
+        if not transactions:
+            messagebox.showerror("Error", "No transactions to report!")
+            return
+
+        df = pd.DataFrame(transactions, columns=["Date", "Description", "Amount", "Type"])
+        df.to_csv("financial_report.csv", index=False)
+        messagebox.showinfo("Report", "Financial report generated successfully!")
+
+    def create_excel_tab(self):
+        excel_frame = ttk.Frame(self.notebook)
+        self.notebook.add(excel_frame, text="Excel Integration")
+
+        ttk.Label(excel_frame, text="Excel File Path:", font=("Helvetica", 12)).grid(row=0, column=0, padx=10, pady=10)
+        self.excel_path_entry = ttk.Entry(excel_frame, font=("Helvetica", 12))
+        self.excel_path_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        ttk.Button(excel_frame, text="Load Excel", command=self.load_excel).grid(row=0, column=2, padx=10, pady=10)
+
+        self.excel_treeview = ttk.Treeview(excel_frame)
+        self.excel_treeview.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
+
+    def load_excel(self):
+        file_path = self.excel_path_entry.get()
+        if not file_path:
+            messagebox.showerror("Error", "Please enter the path to an Excel file!")
+            return
+
+        try:
+            df = pd.read_excel(file_path)
+            self.populate_treeview(self.excel_treeview, df)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load Excel file: {e}")
+
+    def populate_treeview(self, treeview, df):
+        treeview.delete(*treeview.get_children())
+        treeview["column"] = list(df.columns)
+        treeview["show"] = "headings"
+
+        for col in df.columns:
+            treeview.heading(col, text=col)
+
+        for row in df.itertuples(index=False):
+            treeview.insert("", "end", values=row)
+
+if __name__ == "__main__":
+    app = Notepad()
+    app.mainloop()
