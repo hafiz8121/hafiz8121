@@ -1,5 +1,7 @@
 import tkinter as tk
 
+#Hello to the person who is reading the code, please do note that(line 45, 49) will be debugged soon. So the code will have some practical issues. 
+
 class Student:
     def __init__(self, name, rollno, m1, m2):
         self.name = name
