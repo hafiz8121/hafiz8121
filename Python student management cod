@@ -104,7 +104,7 @@ accept_button.grid(row=4, column=0, columnspan=2)
 display_button = tk.Button(root, text="Display Students", command=display_students)
 display_button.grid(row=5, column=0, columnspan=2)
 
-search_rollno_label = tk.Label(root, text="Search Roll No:")
+search_rollno_label = tk.Label(root, text="Search Roll No:")  #This line will not work, as the search_rollno_label is not defined to Tkinter and the whole ecosystem in tot will not work(python)##Abdulokh please correct this code##
 search_rollno_label.grid(row=6, column=0)
 search_rollno_entry = tk.Entry(root)
 search_rollno_entry.grid(row=6, column=1)
