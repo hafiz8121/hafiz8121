@@ -1,8 +1,10 @@
 user_input = input("please enter ur name: ")
-user_money = input("enter how much money you have: ")
-user_interest = input("enter your interest rate in %: ")
+user_money = float(input("enter how much money you have: "))
+user_interest = 0.05
 
+balance_interest = user_money * (1 + user_interest)
 
 print("hello", user_input)
 print("you have", user_money, "Sek")
-print("your interest rate is", user_interest, "%")
+print("your interest rate is", int(user_interest * 100), "%")
+print("your balance after 1 year will be", balance_interest, "Sek")
